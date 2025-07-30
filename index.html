@@ -4,16 +4,13 @@
   <meta charset="UTF-8">
   <title>Smart Device Control Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f5f7fa;
       --card-bg: #ffffff;
-      --primary: #0078d4;
       --success: #28a745;
       --danger: #dc3545;
-      --gray: #6c757d;
       --font: 'Inter', sans-serif;
     }
 
@@ -47,7 +44,7 @@
       background: var(--card-bg);
       border-radius: 16px;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-      padding: 24px;
+      padding: 32px 24px;
       text-align: center;
       transition: all 0.3s ease;
     }
@@ -58,35 +55,28 @@
     }
 
     .card h3 {
-      font-size: 1.3rem;
-      margin-bottom: 10px;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
       color: #222;
     }
 
-    .status {
-      margin-bottom: 16px;
-      font-weight: 500;
-      color: var(--gray);
-    }
-
     .btn {
-      padding: 10px 20px;
+      padding: 12px 28px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 1rem;
       cursor: pointer;
       font-weight: 600;
       transition: background 0.2s ease;
+      color: #fff;
     }
 
     .btn-on {
-      background-color: var(--danger);
-      color: #fff;
+      background-color: var(--success);
     }
 
     .btn-off {
-      background-color: var(--success);
-      color: #fff;
+      background-color: var(--danger);
     }
 
     @media (max-width: 600px) {
@@ -139,7 +129,6 @@
       card.className = "card";
       card.innerHTML = `
         <h3>${name}</h3>
-        <div class="status" id="${name}-status">Checking...</div>
         <button class="btn" id="${name}-btn" onclick="toggle('${name}')">Loading...</button>
       `;
       container.appendChild(card);
@@ -153,7 +142,8 @@
       fetch(url)
         .then(() => setTimeout(() => updateStatus(name), 800))
         .catch(() => {
-          document.getElementById(`${name}-status`).textContent = "Error!";
+          btn.textContent = "Error!";
+          btn.className = "btn btn-off";
         });
     }
 
@@ -162,25 +152,24 @@
         .then(res => res.text())
         .then(state => {
           const btn = document.getElementById(`${name}-btn`);
-          const statusText = document.getElementById(`${name}-status`);
           btn.dataset.state = state;
+
           if (state === "1") {
-            statusText.textContent = "Status: ON";
-            statusText.style.color = "#28a745";
-            btn.textContent = "Turn OFF";
+            btn.textContent = "ON";
             btn.className = "btn btn-on";
           } else {
-            statusText.textContent = "Status: OFF";
-            statusText.style.color = "#dc3545";
-            btn.textContent = "Turn ON";
+            btn.textContent = "OFF";
             btn.className = "btn btn-off";
           }
         })
         .catch(() => {
-          document.getElementById(`${name}-status`).textContent = "Error!";
+          const btn = document.getElementById(`${name}-btn`);
+          btn.textContent = "Error!";
+          btn.className = "btn btn-off";
         });
     }
 
+    // Auto refresh every 10 seconds
     setInterval(() => {
       Object.keys(devices).forEach(updateStatus);
     }, 10000);
