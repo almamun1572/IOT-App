@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Device Control Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --primary: #0078d4;
+      --success: #28a745;
+      --danger: #dc3545;
+      --gray: #6c757d;
+      --font: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: var(--font);
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 40px;
+      color: #111;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .status {
+      margin-bottom: 16px;
+      font-weight: 500;
+      color: var(--gray);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s ease;
+    }
+
+    .btn-on {
+      background-color: var(--danger);
+      color: #fff;
+    }
+
+    .btn-off {
+      background-color: var(--success);
+      color: #fff;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 20px 16px;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Smart Device Control Panel</h2>
+    <div class="grid" id="device-container">
+      <!-- Device cards will be generated here -->
+    </div>
+  </div>
+
+  <script>
+    const devices = {
+      "Light": {
+        "on": "https://blynk.cloud/external/api/update?token=lhELh2hu1ouKuDoziYjxdzlrgSHrkGlg&V3=1",
+        "off": "https://blynk.cloud/external/api/update?token=lhELh2hu1ouKuDoziYjxdzlrgSHrkGlg&V3=0",
+        "status": "https://blynk.cloud/external/api/get?token=lhELh2hu1ouKuDoziYjxdzlrgSHrkGlg&V3"
+      },
+      "Fan": {
+        "on": "https://blynk.cloud/external/api/update?token=lhELh2hu1ouKuDoziYjxdzlrgSHrkGlg&V4=1",
+        "off": "https://blynk.cloud/external/api/update?token=lhELh2hu1ouKuDoziYjxdzlrgSHrkGlg&V4=0",
+        "status": "https://blynk.cloud/external/api/get?token=lhELh2hu1ouKuDoziYjxdzlrgSHrkGlg&V4"
+      },
+      "Motor": {
+        "on": "https://blynk.cloud/external/api/update?token=B3zGySOexKemlM6Sj_FV4w1Cw3PYPGi2&V2=1",
+        "off": "https://blynk.cloud/external/api/update?token=B3zGySOexKemlM6Sj_FV4w1Cw3PYPGi2&V2=0",
+        "status": "https://blynk.cloud/external/api/get?token=B3zGySOexKemlM6Sj_FV4w1Cw3PYPGi2&V2"
+      },
+      "Mike": {
+        "on": "https://blynk.cloud/external/api/update?token=B3zGySOexKemlM6Sj_FV4w1Cw3PYPGi2&V4=1",
+        "off": "https://blynk.cloud/external/api/update?token=B3zGySOexKemlM6Sj_FV4w1Cw3PYPGi2&V4=0",
+        "status": "https://blynk.cloud/external/api/get?token=B3zGySOexKemlM6Sj_FV4w1Cw3PYPGi2&V4"
+      }
+    };
+
+    const container = document.getElementById("device-container");
+
+    Object.keys(devices).forEach(name => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h3>${name}</h3>
+        <div class="status" id="${name}-status">Checking...</div>
+        <button class="btn" id="${name}-btn" onclick="toggle('${name}')">Loading...</button>
+      `;
+      container.appendChild(card);
+      updateStatus(name);
+    });
+
+    function toggle(name) {
+      const btn = document.getElementById(`${name}-btn`);
+      const currentState = btn.dataset.state;
+      const url = currentState === "1" ? devices[name].off : devices[name].on;
+      fetch(url)
+        .then(() => setTimeout(() => updateStatus(name), 800))
+        .catch(() => {
+          document.getElementById(`${name}-status`).textContent = "Error!";
+        });
+    }
+
+    function updateStatus(name) {
+      fetch(devices[name].status)
+        .then(res => res.text())
+        .then(state => {
+          const btn = document.getElementById(`${name}-btn`);
+          const statusText = document.getElementById(`${name}-status`);
+          btn.dataset.state = state;
+          if (state === "1") {
+            statusText.textContent = "Status: ON";
+            statusText.style.color = "#28a745";
+            btn.textContent = "Turn OFF";
+            btn.className = "btn btn-on";
+          } else {
+            statusText.textContent = "Status: OFF";
+            statusText.style.color = "#dc3545";
+            btn.textContent = "Turn ON";
+            btn.className = "btn btn-off";
+          }
+        })
+        .catch(() => {
+          document.getElementById(`${name}-status`).textContent = "Error!";
+        });
+    }
+
+    setInterval(() => {
+      Object.keys(devices).forEach(updateStatus);
+    }, 10000);
+  </script>
+</body>
+</html>
